@@ -1,0 +1,34 @@
+name: Sync Genshin Plugin
+
+on:
+  schedule:
+    - cron: '0 0 * * *'  # 每天凌晨同步一次
+  workflow_dispatch:      # 也支持手动触发
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout current repo (main branch)
+        uses: actions/checkout@v4
+
+      - name: Clone upstream Miao-Yunzai repo
+        uses: actions/checkout@v4
+        with:
+          repository: yoimiya-kokomi/Miao-Yunzai
+          ref: master
+          path: upstream
+
+      - name: Copy genshin plugin
+        run: |
+          mkdir -p genshin
+          rsync -av --exclude='.git' --exclude='.github' --delete upstream/plugins/genshin/ genshin/
+
+      - name: Push to master branch of current repo
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          personal_token: ${{ secrets.PERSONAL_TOKEN }}
+          publish_dir: ./genshin
+          publish_branch: master
+          commit_message: "Sync from Miao-Yunzai/plugins/genshin"
