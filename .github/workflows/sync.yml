@@ -1,0 +1,49 @@
+name: Sync Genshin Plugin
+
+on:
+  schedule:
+    - cron: '0 0 * * *'  # 每天 UTC 0 点执行
+  workflow_dispatch:  # 允许手动触发
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout current repo
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.PERSONAL_TOKEN }}
+          path: current-repo
+
+      - name: Checkout source repo
+        uses: actions/checkout@v4
+        with:
+          repository: yoimiya-kokomi/Miao-Yunzai
+          path: source-repo
+          ref: master
+          sparse-checkout: |
+            plugins/genshin
+
+      - name: Copy files (excluding workflow)
+        run: |
+          cd source-repo/plugins/genshin
+          # 复制文件到当前仓库，排除工作流目录
+          cp -r . ../../current-repo/
+          # 恢复被覆盖的工作流文件
+          git checkout ../../current-repo/.github/workflows/sync-genshin.yml
+        shell: bash
+
+      - name: Commit changes
+        run: |
+          cd current-repo
+          git config user.name "GitHub Action"
+          git config user.email "action@github.com"
+          git add .
+          # 只有存在更改时才提交
+          if ! git diff --cached --quiet; then
+            git commit -m "Auto-sync genshin plugin from upstream"
+            git push
+          else
+            echo "No changes to commit"
+          fi    
