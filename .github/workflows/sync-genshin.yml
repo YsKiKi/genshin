@@ -3,7 +3,7 @@ name: Sync Genshin Plugin
 on:
   schedule:
     - cron: '0 0 * * *'  # 每天 UTC 0 点执行
-  workflow_dispatch:  # 允许手动触发
+  workflow_dispatch:      # 允许手动触发
 
 jobs:
   sync:
@@ -13,7 +13,7 @@ jobs:
       - name: Checkout current repo
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.PERSONAL_TOKEN }}  # 使用个人访问令牌
+          token: ${{ secrets.PERSONAL_TOKEN }}
           path: current-repo
 
       - name: Checkout source repo
@@ -25,13 +25,9 @@ jobs:
           sparse-checkout: |
             plugins/genshin
 
-      - name: Copy files (excluding workflow)
+      - name: Sync genshin plugin files
         run: |
-          cd source-repo/plugins/genshin
-          # 复制文件到当前仓库，排除工作流目录
-          cp -r . ../../current-repo/
-          # 恢复被覆盖的工作流文件
-          git checkout ../../current-repo/.github/workflows/sync-genshin.yml
+          rsync -av --exclude='.github/workflows/sync-genshin.yml' source-repo/plugins/genshin/ current-repo/
         shell: bash
 
       - name: Commit changes
@@ -46,4 +42,5 @@ jobs:
             git push
           else
             echo "No changes to commit"
-          fi    
+          fi
+        shell: bash
