@@ -25,6 +25,13 @@ jobs:
           sparse-checkout: |
             plugins/genshin
 
+      - name: Get upstream commit info
+        run: |
+          cd source-repo
+          echo "UPSTREAM_MSG=$(git log -1 --pretty=format:'%s' -- plugins/genshin)" >> $GITHUB_ENV
+          echo "UPSTREAM_HASH=$(git log -1 --pretty=format:'%H' -- plugins/genshin)" >> $GITHUB_ENV
+        shell: bash
+
       - name: Sync genshin plugin files, exclude workflow
         run: |
           rsync -av --exclude='.github/workflows/sync-genshin.yml' source-repo/plugins/genshin/ current-repo/
@@ -37,7 +44,9 @@ jobs:
           git config user.email "action@github.com"
           git add .
           if ! git diff --cached --quiet; then
-            git commit -m "Auto-sync genshin plugin from upstream"
+            git commit \
+              -m "${{ env.UPSTREAM_MSG }}" \
+              -m "upstream: yoimiya-kokomi/Miao-Yunzai@${{ env.UPSTREAM_HASH }}"
             git push
           else
             echo "No changes to commit"
