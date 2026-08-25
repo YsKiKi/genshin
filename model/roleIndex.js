@@ -317,7 +317,11 @@ export default class RoleIndex extends base {
         }
       }
 
-      if (["雪山", "稻妻", "层岩巨渊", "须弥", "枫丹", "沉玉谷", "纳塔", "空之神殿"].includes(val.name)) {
+      if (
+        ["雪山", "稻妻", "层岩巨渊", "须弥", "枫丹", "沉玉谷", "纳塔", "空之神殿"].includes(
+          val.name,
+        )
+      ) {
         if (val.offerings[0].name.includes("流明石")) {
           val.offerings[0].name = "流明石"
         }
